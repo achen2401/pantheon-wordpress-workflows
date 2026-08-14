@@ -1,9 +1,7 @@
 #!/bin/bash
 
 SITES=(
-    "site-one"
-    "site-two"
-    "site-three"
+    "wordpressdev-nursing"
 )
 
 # Get the directory containing this script
