@@ -1,8 +1,13 @@
 #!/bin/bash
 
 SITES=(
-    "wordpressdev-nursing"
+    "site-one"
+    "site-two"
+    "site-three"
 )
+
+# Get the directory containing this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 for SITE in "${SITES[@]}"; do
 
@@ -11,7 +16,7 @@ for SITE in "${SITES[@]}"; do
     echo "Processing $SITE"
     echo "=========================================="
 
-    ./update-wordpress.sh "$SITE"
+    "$SCRIPT_DIR/update-wordpress.sh" "$SITE"
 
     RESULT=$?
 
