@@ -1,0 +1,27 @@
+name: Pantheon WordPress Updates
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Terminus
+        uses: pantheon-systems/terminus-github-actions@v1
+        with:
+          pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+
+      - name: Verify Terminus authentication
+        run: terminus auth:whoami
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
+
+      - name: Update Pantheon sites
+        run: ./scripts/update-all-wordpress.sh
+    
