@@ -23,5 +23,5 @@ jobs:
         run: chmod +x scripts/*.sh
 
       - name: Update Pantheon sites
-        run: ./scripts/update-all-wordpress.sh
-    
+        run: scripts/update-all-wordpress.sh
+        
