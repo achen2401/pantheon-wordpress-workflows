@@ -1,3 +1,4 @@
+```bash
 #!/bin/bash
 
 set -u
@@ -18,6 +19,29 @@ fi
 
 NOTE="Automated WordPress upstream update $(date '+%Y-%m-%d')"
 
+# Track whether we switched Dev to Git mode.
+DEV_IN_GIT_MODE=false
+
+# --------------------------------------------------
+# Cleanup
+# --------------------------------------------------
+
+cleanup() {
+    if [ "$DEV_IN_GIT_MODE" = true ]; then
+        echo ""
+        echo "Switching $SITE.dev back to SFTP mode..."
+
+        if terminus connection:set "$SITE.dev" sftp; then
+            echo "$SITE.dev is back in SFTP mode."
+        else
+            echo "WARNING: Could not switch $SITE.dev back to SFTP mode."
+        fi
+    fi
+}
+
+# Run cleanup whenever the script exits.
+trap cleanup EXIT
+
 echo "=========================================="
 echo "Pantheon WordPress Update"
 echo "Site: $SITE"
@@ -35,46 +59,57 @@ if ! terminus connection:set "$SITE.dev" git; then
     exit 1
 fi
 
+DEV_IN_GIT_MODE=true
+
 # --------------------------------------------------
-# 2. Check for upstream updates
+# 2. Refresh upstream update information
+# --------------------------------------------------
+
+echo ""
+echo "Refreshing upstream update information..."
+
+if ! terminus site:upstream:clear-cache "$SITE"; then
+    echo "ERROR: Could not refresh upstream update information for $SITE."
+    exit 1
+fi
+
+# --------------------------------------------------
+# 3. Check for upstream updates
 # --------------------------------------------------
 
 echo ""
 echo "Checking for upstream updates..."
 
-UPDATES=$(terminus upstream:updates:list "$SITE.dev" --format=list --field=id 2>/dev/null)
+if ! UPDATES=$(terminus upstream:updates:list "$SITE.dev" --field=hash); then
+    echo "ERROR: Could not check upstream updates for $SITE."
+    exit 1
+fi
 
 if [ -z "$UPDATES" ]; then
     echo "No upstream updates available for $SITE."
-
-    echo ""
-    echo "Switching $SITE.dev back to SFTP mode..."
-
-    if ! terminus connection:set "$SITE.dev" sftp; then
-        echo "ERROR: Could not switch $SITE.dev to SFTP mode."
-        exit 1
-    fi
-
     exit 0
 fi
 
-echo "Upstream update available:"
+echo ""
+echo "Upstream update(s) available:"
 echo "$UPDATES"
 
 # --------------------------------------------------
-# 3. Apply update to Dev
+# 4. Apply update to Dev
 # --------------------------------------------------
 
 echo ""
 echo "Applying upstream update to Dev..."
 
-if ! terminus upstream:updates:apply "$SITE.dev" --updatedb; then
+if ! terminus upstream:updates:apply "$SITE.dev"; then
     echo "ERROR: Upstream update failed for $SITE."
     exit 1
 fi
 
+echo "Upstream update successfully applied to Dev."
+
 # --------------------------------------------------
-# 4. Deploy Dev -> Test
+# 5. Deploy Dev -> Test
 # --------------------------------------------------
 
 echo ""
@@ -87,8 +122,22 @@ if ! terminus env:deploy "$SITE.test" \
     exit 1
 fi
 
+echo "Deployment to Test completed."
+
 # --------------------------------------------------
-# 5. Test Test environment
+# 6. Clear Test cache
+# --------------------------------------------------
+
+echo ""
+echo "Clearing cache on $SITE.test..."
+
+if ! terminus env:clear-cache "$SITE.test"; then
+    echo "ERROR: Could not clear cache on $SITE.test."
+    exit 1
+fi
+
+# --------------------------------------------------
+# 7. Test Test environment
 # --------------------------------------------------
 
 TEST_URL="https://test-${SITE}.pantheonsite.io"
@@ -112,7 +161,7 @@ fi
 echo "Test environment check passed."
 
 # --------------------------------------------------
-# 6. Deploy Test -> Live
+# 8. Deploy Test -> Live
 # --------------------------------------------------
 
 echo ""
@@ -125,8 +174,22 @@ if ! terminus env:deploy "$SITE.live" \
     exit 1
 fi
 
+echo "Deployment to Live completed."
+
 # --------------------------------------------------
-# 7. Check Live
+# 9. Clear Live cache
+# --------------------------------------------------
+
+echo ""
+echo "Clearing cache on $SITE.live..."
+
+if ! terminus env:clear-cache "$SITE.live"; then
+    echo "ERROR: Could not clear cache on $SITE.live."
+    exit 1
+fi
+
+# --------------------------------------------------
+# 10. Check Live
 # --------------------------------------------------
 
 LIVE_URL="https://live-${SITE}.pantheonsite.io"
@@ -146,27 +209,16 @@ if ! curl \
     exit 1
 fi
 
+echo "Live environment check passed."
+
+# --------------------------------------------------
+# Finished
+# --------------------------------------------------
+
 echo ""
 echo "=========================================="
 echo "SUCCESS: $SITE updated successfully."
 echo "=========================================="
 
-
-echo ""
-echo "Clearing cache on $SITE.live..."
-
-if ! terminus env:clear-cache "$SITE.live"; then
-    echo "ERROR: Could not clear cache on $SITE.live."
-    exit 1
-fi
-
-
-echo ""
-echo "Switching $SITE.dev to SFTP mode..."
-
-if ! terminus connection:set "$SITE.dev" sftp; then
-    echo "ERROR: Could not switch $SITE.dev to SFTP mode."
-    exit 1
-fi
-
 exit 0
+```
