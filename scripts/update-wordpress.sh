@@ -216,9 +216,7 @@ echo "Live environment check passed."
 # --------------------------------------------------
 
 echo ""
-echo "=========================================="
 echo "SUCCESS: $SITE updated successfully."
-echo "=========================================="
 
 exit 0
 ```
