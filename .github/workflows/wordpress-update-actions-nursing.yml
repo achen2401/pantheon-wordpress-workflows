@@ -10,6 +10,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with: 
+          ref: main
+          fetch-depth: 0
+      - name: Show checked out commit
+        run: |
+          echo "Branch:" $(git branch --show-current)
+          echo "Commit:" $(git log -1 --oneline)
 
       - name: Install Terminus
         uses: pantheon-systems/terminus-github-actions@v1
