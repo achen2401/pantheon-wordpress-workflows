@@ -1,4 +1,5 @@
-name: Pantheon WordPress Update - facilities-nursing
+name: Pantheon WordPress Update - nursingnext
+
 on:
   workflow_dispatch:
 
@@ -22,5 +23,5 @@ jobs:
         run: chmod +x scripts/*.sh
 
       - name: Update Pantheon site
-        run: ./scripts/update-wordpress.sh facilities-nursing
+        run: ./scripts/update-wordpress.sh nursingnext
     
