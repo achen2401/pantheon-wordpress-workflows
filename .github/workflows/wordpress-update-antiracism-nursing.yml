@@ -24,4 +24,3 @@ jobs:
 
       - name: Update Pantheon site
         run: ./scripts/update-wordpress.sh antiracism-nursing
-    
