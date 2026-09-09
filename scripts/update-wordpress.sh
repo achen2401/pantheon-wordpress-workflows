@@ -1,5 +1,4 @@
-```bash
-#!/bin/bash
+ #!/bin/bash
 
 set -u
 
@@ -219,4 +218,3 @@ echo ""
 echo "SUCCESS: $SITE updated successfully."
 
 exit 0
-```
